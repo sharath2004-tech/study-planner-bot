@@ -1,0 +1,21 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Env & secrets
+.env
+config/firebase-key.json
+
+# Local data and auth artifacts
+data/mock-db.json
+data/latest-qr.json
+auth_info_baileys/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Frontend env
+website/frontend/.env
+website/frontend/.env.local
+website/frontend/.env.*.local

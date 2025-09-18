@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aiml version="1.0.1" xmlns="http://alicebot.org/2001/AIML-1.0.1">
+  <category>
+    <pattern>HELP</pattern>
+    <template>
+      Here are some things I can do:
+      - Create a study plan: say "create a study plan for math"
+      - Reminders: "remind me in 20 minutes to take a break"
+      - Todos: "add a todo finish assignment"
+      - Send a PDF or image of your schedule and I will extract it.
+    </template>
+  </category>
+
+  <category>
+    <pattern>HELLO</pattern>
+    <template>Hello! How can I help with your studies today?</template>
+  </category>
+
+  <category>
+    <pattern>HI</pattern>
+    <template>Hi there! Need a study plan or a reminder?</template>
+  </category>
+
+  <category>
+    <pattern>CREATE A STUDY PLAN FOR *</pattern>
+    <template>
+      I'll help you plan for <star/>. Tell me how many days you have and your daily available hours.
+    </template>
+  </category>
+
+  <category>
+    <pattern>STUDY PLAN *</pattern>
+    <template>
+      I can draft a plan for <star/>. How many days do you want to cover it?
+    </template>
+  </category>
+
+  <category>
+    <pattern>* STUDY PLAN *</pattern>
+    <template>
+      I can create a study plan. Which subject and how many days do you have?
+    </template>
+  </category>
+
+  <category>
+    <pattern>*</pattern>
+    <template>
+      I'm here to help with study planning, reminders, and todos. Try saying "help" for ideas!
+    </template>
+  </category>
+</aiml>

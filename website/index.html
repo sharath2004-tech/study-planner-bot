@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Planner Bot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 80px 0;
+        }
+
+        .header h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 60px 0;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .feature h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .feature p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .cta-section {
+            text-align: center;
+            margin: 80px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 20px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .btn.primary {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.online {
+            background: #4CAF50;
+        }
+
+        .status-dot.offline {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .header p {
+                font-size: 1.2rem;
+            }
+            
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="status-indicator" id="statusIndicator">
+        <span class="status-dot offline" id="statusDot"></span>
+        <span id="statusText">Checking connection...</span>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>📚 Study Planner Bot</h1>
+            <p>Your AI-powered WhatsApp study companion</p>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <h3>📱 WhatsApp Integration</h3>
+                <p>Manage your study schedule directly through WhatsApp. No need to install additional apps - just use your favorite messaging platform.</p>
+            </div>
+
+            <div class="feature">
+                <h3>📋 Smart Todo Management</h3>
+                <p>Add, view, and complete tasks with simple commands. Get reminders for important deadlines and track your progress effortlessly.</p>
+            </div>
+
+            <div class="feature">
+                <h3>📄 Schedule Parsing</h3>
+                <p>Upload your class schedule as PDF or image and let our OCR technology automatically extract and organize your timetable.</p>
+            </div>
+
+            <div class="feature">
+                <h3>⏰ Smart Reminders</h3>
+                <p>Never miss a class or deadline. Get automatic reminders based on your schedule and custom notifications for important tasks.</p>
+            </div>
+
+            <div class="feature">
+                <h3>🎯 Easy Commands</h3>
+                <p>Simple text commands like "todo add", "schedule", "help" make it intuitive to use. No complex interfaces to learn.</p>
+            </div>
+
+            <div class="feature">
+                <h3>☁️ Cloud Sync</h3>
+                <p>Your data is safely stored in the cloud and synced across devices. Access your study plan from anywhere, anytime.</p>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2 style="margin-bottom: 30px;">Ready to supercharge your studies?</h2>
+            <a href="registration.html" class="btn primary">🚀 Register Now</a>
+            <a href="#commands" class="btn">📖 View Commands</a>
+            <a id="chatBtn" href="#" class="btn" style="display:none">💬 Chat on WhatsApp</a>
+            <span id="chatHint" style="display:block;margin-top:8px;opacity:.9">Link your WhatsApp on the <a href="/qr" style="color:#fff;text-decoration:underline">QR page</a> to enable chat.</span>
+        </div>
+
+        <div class="feature" id="commands" style="margin-top: 60px;">
+            <h3>📱 Available Commands</h3>
+            <div style="text-align: left; font-family: monospace; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 10px; margin-top: 20px;">
+                <p><strong>todo add [task]</strong> - Add a new task</p>
+                <p><strong>todo list</strong> - View all your tasks</p>
+                <p><strong>done [number]</strong> - Mark task as completed</p>
+                <p><strong>schedule</strong> - View your class schedule</p>
+                <p><strong>help</strong> - Show all available commands</p>
+                <p><strong>Send PDF/Image</strong> - Upload schedule documents</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2024 Study Planner Bot. Built with ❤️ for students.</p>
+        </div>
+    </div>
+
+    <script>
+        // Check backend status
+        async function checkBackendStatus() {
+            try {
+                const response = await fetch('/api/health');
+                if (response.ok) {
+                    document.getElementById('statusDot').className = 'status-dot online';
+                    document.getElementById('statusText').textContent = 'Bot Online';
+                } else {
+                    throw new Error('Backend not responding');
+                }
+            } catch (error) {
+                document.getElementById('statusDot').className = 'status-dot offline';
+                document.getElementById('statusText').textContent = 'Bot Offline';
+            }
+        }
+
+        // Check bot connection and enable chat button
+        async function checkBotInfo() {
+            try {
+                const res = await fetch('/api/bot-info');
+                if (!res.ok) throw new Error('No bot info');
+                const info = await res.json();
+                const chatBtn = document.getElementById('chatBtn');
+                const chatHint = document.getElementById('chatHint');
+                chatBtn.href = '/chat';
+                chatBtn.style.display = 'inline-block';
+                if (chatHint) chatHint.style.display = 'none';
+            } catch (e) {
+                // keep hidden until connected
+            }
+        }
+
+        // Check status on load and every 30 seconds
+        checkBackendStatus();
+        checkBotInfo();
+        setInterval(checkBackendStatus, 30000);
+        setInterval(checkBotInfo, 15000);
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

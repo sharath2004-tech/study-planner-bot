@@ -1,0 +1,73 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run API server on 5000",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoLogo",
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"$env:PORT='5000'; npm run server"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Start Study Planner API",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"server"
+			],
+			"isBackground": true,
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Firebase Health Check",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"firebase:health"
+			],
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Start Study Planner API",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"server"
+			],
+			"isBackground": true,
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "start-api",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"website/backend/server.js"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

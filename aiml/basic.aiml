@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aiml version="1.0.1" encoding="UTF-8">
+  <category>
+    <pattern>HELLO</pattern>
+    <template>Hi! How can I help with your studies today?</template>
+  </category>
+  <category>
+    <pattern>HI</pattern>
+    <template>Hello! Need help planning or organizing?</template>
+  </category>
+  <category>
+    <pattern>WHAT TIME IS IT</pattern>
+    <template>The current time is <star/></template>
+  </category>
+  <category>
+    <pattern>HELP</pattern>
+    <template>Type 'help' to see commands, or just ask me in plain English.</template>
+  </category>
+</aiml>

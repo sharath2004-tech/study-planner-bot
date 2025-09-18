@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Planner Bot - Registration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="email"],
+        input[type="tel"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="email"]:focus,
+        input[type="tel"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .info-box h3 {
+            color: #0066cc;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            color: #555;
+            margin-left: 20px;
+        }
+
+        .info-box li {
+            margin-bottom: 5px;
+        }
+
+        .connected-status {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Study Planner Bot</h1>
+            <p>Register your WhatsApp number to get started</p>
+        </div>
+
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="email">📧 Email Address</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="your.email@example.com">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">📱 WhatsApp Phone Number</label>
+                <input type="tel" id="phone" name="phone" required 
+                       placeholder="916305352434 (without + sign)" 
+                       pattern="[0-9]{10,15}">
+                <small style="color: #666; font-size: 14px;">
+                    Enter your phone number without country code prefix (+)
+                </small>
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn">
+                🚀 Register for Study Bot
+            </button>
+        </form>
+
+        <div id="status"></div>
+
+        <div class="info-box">
+            <h3>🎯 What happens after registration?</h3>
+            <ul>
+                <li>Your WhatsApp number gets registered in the system</li>
+                <li>You can start chatting with the bot immediately</li>
+                <li>Send <strong>"help"</strong> to see all available commands</li>
+                <li>Upload your class schedule via PDF/image</li>
+                <li>Manage your todos through WhatsApp</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h3>📱 How to use the bot:</h3>
+            <ul>
+                <li><code>todo add Study for math exam</code> - Add a task</li>
+                <li><code>todo list</code> - View all tasks</li>
+                <li><code>done 1</code> - Mark first task as completed</li>
+                <li><code>help</code> - Show all commands</li>
+                <li>Send PDF/image of your schedule for automatic parsing</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('registrationForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusDiv = document.getElementById('status');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const email = formData.get('email');
+            const phone = formData.get('phone');
+
+            // Validate phone number
+            if (!/^[0-9]{10,15}$/.test(phone)) {
+                showStatus('Please enter a valid phone number (10-15 digits, no spaces or special characters)', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = '🔄 Registering...';
+
+            try {
+                const response = await fetch('/api/users/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, phone })
+                });
+
+                const result = await response.json();
+
+                if (response.ok || response.status === 409) {
+                    showStatus(`✅ Registration successful! Redirecting you to WhatsApp...`, 'success');
+                    form.reset();
+
+                    // Try to open chat if bot is connected, otherwise go to QR linking page
+                    setTimeout(async () => {
+                        try {
+                            const infoRes = await fetch('/api/bot-info');
+                            if (infoRes.ok) {
+                                window.location.href = '/chat';
+                            } else {
+                                // Bot not connected yet — take user to QR page to link
+                                window.location.href = '/qr';
+                            }
+                        } catch (e) {
+                            // Fallback: attempt chat redirect anyway
+                            window.location.href = '/chat';
+                        }
+                    }, 1200);
+                } else {
+                    showStatus(`❌ Registration failed: ${result.message || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Network error: ${error.message}. Make sure the backend server is running.`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🚀 Register for Study Bot';
+            }
+        });
+
+        function showStatus(message, type) {
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // Auto-fill phone number if available
+        window.addEventListener('load', () => {
+            // You can pre-fill the phone number if known
+            // document.getElementById('phone').value = '916305352434';
+        });
+    </script>
+</body>
+</html>
