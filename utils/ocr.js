@@ -13,7 +13,8 @@ const OCR_DEBUG = (process.env.OCR_DEBUG || 'false').toLowerCase() === 'true';
  * @returns {Promise<Buffer>} - Processed image buffer
  */
 async function preprocess(buffer) {
-  let img = sharp(buffer, { failOn: false }).rotate();
+  // sharp v0.34+ expects failOn: 'none' | 'truncated' | 'error' | 'warning'
+  let img = sharp(buffer, { failOn: 'none' }).rotate();
 
   const meta = await img.metadata();
   const minW = 1800; // target width for small images
@@ -40,7 +41,12 @@ async function preprocess(buffer) {
  * @returns {Promise<string>} - Extracted text from the image
  */
 async function extractTextFromImageBuffer(imageBuffer) {
-  const pre = await preprocess(imageBuffer);
+  let pre = imageBuffer;
+  try {
+    pre = await preprocess(imageBuffer);
+  } catch (e) {
+    if (OCR_DEBUG) console.log('⚠️ OCR preprocess failed, using raw buffer:', e.message);
+  }
   const options = {
     lang: OCR_LANGS,
     tessedit_pageseg_mode: OCR_PSM,
@@ -49,7 +55,8 @@ async function extractTextFromImageBuffer(imageBuffer) {
   };
 
   const { data } = await Tesseract.recognize(pre, OCR_LANGS, {
-    logger: OCR_DEBUG ? (m) => console.log('📖 OCR', m) : undefined
+    // Always provide a function; gate actual logging with OCR_DEBUG to avoid TypeError
+    logger: (m) => { if (OCR_DEBUG) console.log('📖 OCR', m); }
   });
 
   // Clean text

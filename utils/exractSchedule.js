@@ -115,11 +115,17 @@ async function extractSchedule(text) {
       const rangeMatches = [...line.matchAll(hhmmRangeRegex)];
       if (rangeMatches.length) {
         for (const rm of rangeMatches) {
-          const h1 = parseInt(rm[1], 10);
+          let h1 = parseInt(rm[1], 10);
           const m1 = parseInt(rm[2], 10);
-          const h2 = parseInt(rm[3], 10);
+          let h2 = parseInt(rm[3], 10);
           const m2 = parseInt(rm[4], 10);
           if (!isValidHM(h1, m1, { format: '24' }) || !isValidHM(h2, m2, { format: '24' })) continue;
+          // Heuristic: if the line contains a noon slot and hours are small (1–6), treat as PM
+          const lineHasNoon = /\b12:/.test(line);
+          if (lineHasNoon) {
+            if (h1 >= 1 && h1 <= 6) h1 += 12;
+            if (h2 >= 1 && h2 <= 6) h2 += 12;
+          }
           const startMins = (h1 > 23 ? 0 : h1) * 60 + m1;
           const endMins = (h2 > 23 ? 0 : h2) * 60 + m2;
           if (endMins <= startMins) continue;
@@ -198,12 +204,15 @@ async function extractSchedule(text) {
             if (/(\d{1,2}):(\d{2})\s*(?:-|–|to)\s*(\d{1,2}):(\d{2})/i.test(line)) {
               continue;
             }
-            const hr24 = parseInt(m[1], 10);
+            let hr24 = parseInt(m[1], 10);
             const min = parseInt(m[2], 10);
             if (!isValidHM(hr24, min, { format: '24' })) continue;
             // Require extra context (day indicators) to accept single hh:mm without am/pm
             const hasDayContext = dayPatterns.some(dp => dp.test(combinedLine));
             if (!hasDayContext) continue;
+            // Heuristic: if same line shows a noon slot, prefer PM for small hours (1–6)
+            const lineHasNoon = /\b12:/.test(line);
+            if (lineHasNoon && hr24 >= 1 && hr24 <= 6) hr24 += 12;
             const ampm = hr24 >= 12 ? 'PM' : 'AM';
             const hr12 = hr24 > 12 ? hr24 - 12 : (hr24 === 0 ? 12 : hr24);
             timeStr = `${hr12}:${String(min).padStart(2, '0')} ${ampm}`;
@@ -213,9 +222,11 @@ async function extractSchedule(text) {
             if (!isValidHM(hr, 0, { format: '12' })) continue;
             timeStr = `${hr}:00 ${ampm}`;
           } else if (pat.name === 'h.mm') {
-            const hr24 = parseInt(m[1], 10);
+            let hr24 = parseInt(m[1], 10);
             const min = parseInt(m[2], 10);
             if (!isValidHM(hr24, min, { format: '24' })) continue;
+            const lineHasNoon = /\b12\./.test(line) || /\b12:/.test(line);
+            if (lineHasNoon && hr24 >= 1 && hr24 <= 6) hr24 += 12;
             const ampm = hr24 >= 12 ? 'PM' : 'AM';
             const hr12 = hr24 > 12 ? hr24 - 12 : (hr24 === 0 ? 12 : hr24);
             timeStr = `${hr12}:${String(min).padStart(2, '0')} ${ampm}`;
