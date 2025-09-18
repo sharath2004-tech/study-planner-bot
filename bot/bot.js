@@ -92,6 +92,20 @@ function isUserRegistered(phoneNumber) {
     return registeredUsers.has(cleanPhone);
 }
 
+// Helper: unwrap common WA wrappers (ephemeral / view-once) to access actual content
+function unwrapMessage(m) {
+    try {
+        let c = m?.message || m || {};
+        if (c.ephemeralMessage?.message) c = c.ephemeralMessage.message;
+        if (c.viewOnceMessage?.message) c = c.viewOnceMessage.message;
+        if (c.viewOnceMessageV2?.message) c = c.viewOnceMessageV2.message;
+        if (c.viewOnceMessageV2Extension?.message) c = c.viewOnceMessageV2Extension.message;
+        return c || {};
+    } catch (_) {
+        return m?.message || {};
+    }
+}
+
 async function startBot() {
     try {
         console.log('🤖 Starting WhatsApp Study Planner Bot...');
@@ -177,10 +191,11 @@ async function startBot() {
         // Adapt message into the shape expected by handleText()
         async function processIncomingMessage(msg) {
             const from = msg.key.remoteJid;
-            const text = (msg.message?.conversation)
-                            || (msg.message?.extendedTextMessage?.text)
-                            || (msg.message?.imageMessage?.caption)
-                            || (msg.message?.documentMessage?.caption)
+            const content = unwrapMessage(msg);
+            const text = (content?.conversation)
+                            || (content?.extendedTextMessage?.text)
+                            || (content?.imageMessage?.caption)
+                            || (content?.documentMessage?.caption)
                             || '';
             const phone = (from || '').replace(/@.*/, '').split(':')[0];
             const send = async (reply) => {
@@ -189,15 +204,18 @@ async function startBot() {
             };
             // If this message contains media (image/PDF), try to parse schedule first
             try {
-                const m = msg.message || {};
+                const m = content || {};
                 const doc = m.documentMessage;
                 const mimetype = (doc && doc.mimetype) || '';
                 const fileName = (doc && doc.fileName) || '';
                 const isImage = !!m.imageMessage || (!!doc && /^image\//i.test(mimetype));
                 const isPdf = !!doc && (/pdf/i.test(mimetype) || /\.pdf$/i.test(fileName));
                 if (isImage || isPdf) {
+                    if ((process.env.DEBUG_MEDIA || '').toLowerCase() === 'true') {
+                        console.log(`🖼️ Media detected: ${isImage ? 'image' : 'pdf'} ${fileName || ''} ${mimetype || ''}`);
+                    }
                     // Download media as Buffer via Baileys helper
-                    const buffer = await downloadMediaMessage(msg, 'buffer');
+                    const buffer = await downloadMediaMessage(msg, 'buffer', undefined, { reuploadRequest: sock.updateMediaMessage });
                     const fileType = isImage ? 'image' : 'pdf';
                     await handleSchedule(from, phone, fileType, buffer, sock);
                     return; // handled
@@ -248,11 +266,24 @@ async function startBot() {
                                 const prefix = process.env.SELF_BOT_PREFIX || '!';
                                 const freeChat = (process.env.SELF_BOT_FREE_CHAT || '').toLowerCase() === 'true';
                                 // Consider captions on media too, so users can trigger processing for images/PDFs
-                                const text = (msg.message?.conversation)
-                                                    || (msg.message?.extendedTextMessage?.text)
-                                                    || (msg.message?.imageMessage?.caption)
-                                                    || (msg.message?.documentMessage?.caption)
-                                                    || '';
+                                const inner = unwrapMessage(msg);
+                                const text = (inner?.conversation)
+                                                                    || (inner?.extendedTextMessage?.text)
+                                                                    || (inner?.imageMessage?.caption)
+                                                                    || (inner?.documentMessage?.caption)
+                                                                    || '';
+                                // If media present, process regardless of prefix requirement
+                                try {
+                                    const doc = inner?.documentMessage;
+                                    const mimetype = (doc && doc.mimetype) || '';
+                                    const fileName = (doc && doc.fileName) || '';
+                                    const hasImage = !!inner?.imageMessage || (!!doc && /^image\//i.test(mimetype));
+                                    const hasPdf = !!doc && (/pdf/i.test(mimetype) || /\.pdf$/i.test(fileName));
+                                    if (hasImage || hasPdf) {
+                                        await processIncomingMessage(msg);
+                                        return;
+                                    }
+                                } catch (_) {}
                                 if (!freeChat && !text.startsWith(prefix)) {
                                     if ((process.env.DEBUG_SELF_BOT || '').toLowerCase() === 'true') {
                                         console.log('🔇 Self-bot: ignoring self message without required prefix');
