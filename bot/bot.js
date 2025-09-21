@@ -226,6 +226,13 @@ async function startBot() {
                     console.log('⚠️ Media handling failed, falling back to text:', e.message);
                 }
             }
+            // Ignore empty/system-only messages to prevent unsolicited sends
+            if (!text || !String(text).trim()) {
+                if ((process.env.DEBUG_SELF_BOT || '').toLowerCase() === 'true') {
+                    console.log('🔇 Ignoring empty text message');
+                }
+                return;
+            }
 
             // We don't wire AIML object here; handleText will LLM-fallback when configured
             await handleText({ phone, text, send, aiml: null });

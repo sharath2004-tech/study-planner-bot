@@ -66,18 +66,56 @@ exports.handleText = async ({ phone, text, send, aiml }) => {
   const useLLM = ((process.env.USE_LLM ?? process.env.USE_OPENAI) ?? 'true').toLowerCase() === 'true';
   const alwaysLLM = ((process.env.ALWAYS_USE_LLM) ?? 'true').toLowerCase() === 'true';
   if (useLLM && (alwaysLLM || aimlIsWeak || /^[a-z]/i.test(msg))) {
-    const useRag = process.env.USE_RAG === 'true';
-    const ctx = useRag ? await rag.retrieveContext(phone, msg, 3, 1200) : '';
-    const history = await loadHistory(phone);
-    const answer = await chatComplete(msg, history, ctx);
-    if (answer) {
-      await send(answer);
-      await saveHistory(phone, msg, answer);
+    try {
+      const useRag = process.env.USE_RAG === 'true';
+      const ctx = useRag ? await rag.retrieveContext(phone, msg, 3, 1200) : '';
+      const history = await loadHistory(phone);
+      const answer = await chatComplete(msg, history, ctx);
+      if (answer) {
+        await send(answer);
+        await saveHistory(phone, msg, answer);
+        return;
+      }
+      // LLM failed (quota, network, etc.) — if RAG is enabled and we have context, send that first
+      if (useRag && ctx) {
+        // ctx is already in a readable form from rag.retrieveContext (e.g. "Relevant notes:\n- ...")
+        await send("I can't reach the AI right now, but here are relevant notes from your knowledge base:\n" + ctx);
+        return;
+      }
+
+      if (msg.toLowerCase().includes('schedule') || msg.toLowerCase().includes('timetable')) {
+        await send('To upload your class schedule, send an image or PDF of your timetable. I\'ll extract the times and subjects, and can notify you before each class.');
+      } else if (msg.toLowerCase().includes('remind') || msg.toLowerCase().includes('notification')) {
+        await send(
+          [
+            'I can notify you 5 minutes before each class. To set this up:',
+            '1) Send your timetable as an image or PDF (a clear screenshot works).',
+            '2) I will extract times and save your schedule.',
+            '3) You will get a DM 5 minutes before each class time on the correct weekday.',
+          ].join('\n')
+        );
+      } else if (msg.toLowerCase().includes('todo') || msg.toLowerCase().includes('task')) {
+        await send('You can manage your todos with:\n- todo add [task]\n- todo list\n- done [number]\n\nExample: "todo add Read chapter 5"');
+      } else {
+        await send('I\'m having trouble with AI responses right now (quota limit). You can still use commands like "help", schedule images/PDFs, and todos while I work on getting the AI back online.');
+      }
+      return;
+    } catch (e) {
+      // LLM threw an exception (usually quota or network)
+      // If RAG is available, provide KB notes as a fallback
+      try {
+        const useRag2 = process.env.USE_RAG === 'true';
+        if (useRag2) {
+          const ragCtx = await rag.retrieveContext(phone, msg, 3, 1200);
+          if (ragCtx) {
+            await send("I can't reach the AI right now, but here are relevant notes from your knowledge base:\n" + ragCtx);
+            return;
+          }
+        }
+      } catch (_) {}
+      await send('I\'m having trouble reaching the AI right now. Please try again in a bit or check your API key. You can still use commands like "help", "todo", and send schedules.');
       return;
     }
-    // LLM failed (quota, network, etc.)
-    await send('I\'m having trouble reaching the AI right now. Please try again in a bit or update your API key. You can still use commands like "help", "todo", and send schedules.');
-    return;
   }
 
   // 4) If AIML had a specific answer, use it; else friendly fallback

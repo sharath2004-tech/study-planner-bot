@@ -59,6 +59,15 @@ function dayMatchesToday(day) {
 }
 
 function startReminders(sock) {
+  // Allow globally disabling reminders via env
+  const enabled = String(process.env.REMINDERS_ENABLED || 'true').toLowerCase() === 'true';
+  if (!enabled) {
+    if ((process.env.DEBUG_REMINDERS || '').toLowerCase() === 'true') {
+      console.log('🔕 Reminders disabled via REMINDERS_ENABLED=false');
+    }
+    return; // do not schedule anything
+  }
+
   cron.schedule("* * * * *", async () => {
     const selfMode = (process.env.SELF_BOT || '').toLowerCase() !== 'false';
     const selfPhone = selfMode ? resolveSelfPhone(sock) : null;

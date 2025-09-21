@@ -9,7 +9,8 @@
     "llm:health": "node scripts/llm-health.js",
     "migrate:mock": "node scripts/migrate-mock-to-firestore.js",
     "register:owner": "node scripts/register-owner.js",
-    "firebase:health": "node scripts/firebase-health.js"
+    "firebase:health": "node scripts/firebase-health.js",
+    "make:models-pdf": "node scripts/make-models-pdf.js"
   },
   "keywords": [],
   "author": "",

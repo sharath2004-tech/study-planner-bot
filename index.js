@@ -1,3 +1,4 @@
+require('dotenv').config({ override: true });
 const { startBot } = require('./bot/bot');
 
 // Initialize the WhatsApp bot

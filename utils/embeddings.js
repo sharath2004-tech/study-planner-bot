@@ -1,13 +1,32 @@
 const OpenAI = require('openai');
 
-let client = null;
-function getClient() {
-  if (!client) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) return null;
-    client = new OpenAI({ apiKey, baseURL: process.env.OPENAI_BASE_URL || undefined });
+let primary = null;
+let fallback = null;
+
+function makeClient({ apiKey, baseURL }) {
+  if (!apiKey) return null;
+  if (process.env.DISABLE_OPENROUTER === 'true' && baseURL && /openrouter/i.test(baseURL)) {
+    baseURL = undefined;
   }
-  return client;
+  const isOpenRouter = !!baseURL && /openrouter/i.test(baseURL);
+  const opts = { apiKey, baseURL: baseURL || undefined };
+  if (isOpenRouter) {
+    opts.defaultHeaders = {
+      'HTTP-Referer': process.env.OPENROUTER_REFERRER || 'http://localhost:5000',
+      'X-Title': process.env.OPENROUTER_TITLE || 'Study Planner Bot',
+    };
+  }
+  return new OpenAI(opts);
+}
+
+function getClient() {
+  if (!primary) {
+    primary = makeClient({ apiKey: process.env.OPENAI_API_KEY, baseURL: process.env.OPENAI_BASE_URL });
+  }
+  if (!fallback && process.env.OPENAI_FALLBACK_API_KEY) {
+    fallback = makeClient({ apiKey: process.env.OPENAI_FALLBACK_API_KEY, baseURL: process.env.OPENAI_FALLBACK_BASE_URL });
+  }
+  return primary || fallback || null;
 }
 
 async function embedText(text) {

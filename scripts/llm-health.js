@@ -1,4 +1,13 @@
-require('dotenv').config();
+require('dotenv').config({ override: true });
+// Normalize base URL so empty string truly disables provider override
+if (typeof process.env.OPENAI_BASE_URL === 'string' && !process.env.OPENAI_BASE_URL.trim()) {
+  delete process.env.OPENAI_BASE_URL;
+}
+// Override quota/rate-limited key with a test-only env var if specified
+if (process.env.OPENAI_TEST_API_KEY) {
+  process.env.OPENAI_API_KEY = process.env.OPENAI_TEST_API_KEY;
+  console.log('📝 Using OPENAI_TEST_API_KEY for health check');
+}
 const { chatComplete } = require('../bot/llm');
 
 (async () => {
